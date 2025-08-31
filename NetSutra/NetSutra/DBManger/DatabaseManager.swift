@@ -372,6 +372,43 @@ class DatabaseManager {
         return false
     }
     
+    func updateCatDetailsBySubCategoryId(
+        subCatId: String,
+        shipmentId: String?,
+        shipmentName: String?,
+        shipmentDescription: String?,
+        mobility: String?,
+        userAccessGroup: String?,
+        status: String?
+    ) -> Bool {
+        
+        let updateStatement = """
+            UPDATE CatDetails
+            SET ShipmentID = ?, ShipmentName = ?, ShipmentDescription = ?,
+                Mobility = ?, UserAccessGroup = ?, Status = ?
+            WHERE subCat_id = ?
+        """
+        var statement: OpaquePointer?
+        var success = false
+        
+        if sqlite3_prepare_v2(database, updateStatement, -1, &statement, nil) == SQLITE_OK {
+            sqlite3_bind_text(statement, 1, (shipmentId as NSString?)?.utf8String, -1, nil)
+            sqlite3_bind_text(statement, 2, (shipmentName as NSString?)?.utf8String, -1, nil)
+            sqlite3_bind_text(statement, 3, (shipmentDescription as NSString?)?.utf8String, -1, nil)
+            sqlite3_bind_text(statement, 4, (mobility as NSString?)?.utf8String, -1, nil)
+            sqlite3_bind_text(statement, 5, (userAccessGroup as NSString?)?.utf8String, -1, nil)
+            sqlite3_bind_text(statement, 6, (status as NSString?)?.utf8String, -1, nil)
+            sqlite3_bind_text(statement, 7, (subCatId as NSString).utf8String, -1, nil)
+            
+            if sqlite3_step(statement) == SQLITE_DONE {
+                success = true
+            }
+        }
+        
+        sqlite3_finalize(statement)
+        return success
+    }
+    
     func deleteCatDetails(id: Int) -> Bool {
         let deleteStatement = "DELETE FROM CatDetails WHERE id = ?"
         var statement: OpaquePointer?

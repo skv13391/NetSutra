@@ -224,9 +224,9 @@ extension SubCategoryVC: UITableViewDelegate {
             }
             
             // Edit action
-            let editAction = UIContextualAction(style: .normal, title: "Edit") { (_, _, completion) in
+            let editAction = UIContextualAction(style: .normal, title: "Edit") { [self] (_, _, completion) in
                 let currentName = self.viewModel.subCategories[indexPath.row]
-                
+                self.moveToEdit(for: viewModel.subCategories[indexPath.row])
                
                 completion(true)
             }
@@ -234,5 +234,15 @@ extension SubCategoryVC: UITableViewDelegate {
             
             return UISwipeActionsConfiguration(actions: [deleteAction, editAction])
         }
+    
+    func moveToEdit(for subCategory: SubCategoryModel)
+    {
+        let storyboard = UIStoryboard(name: "Main", bundle: nil)
+        if let detailVC = storyboard.instantiateViewController(withIdentifier: "EditVC") as? EditVC {
+            detailVC.selectedSubCategory = subCategory
+            detailVC.selectedCategory = selectedCategory
+            navigationController?.pushViewController(detailVC, animated: true)
+        }
+    }
     
 }
