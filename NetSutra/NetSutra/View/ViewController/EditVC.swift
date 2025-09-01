@@ -10,24 +10,32 @@ import Combine
 
 class EditVC: UIViewController {
 
+    @IBOutlet weak var outerView: UIView!
+    @IBOutlet weak var lblOuterSelect: UILabel!
+    @IBOutlet weak var tblView: UITableView!
     @IBOutlet weak var headerView: UIView!
     @IBOutlet weak var lblTitle: UILabel!
     @IBOutlet weak var txtFeildShipemntId: UITextField!
     @IBOutlet weak var scrlView: UIScrollView!
+    @IBOutlet weak var btnSubmit: UIButton!
+    @IBOutlet weak var btnCancel: UIButton!
     @IBOutlet weak var desHeight: NSLayoutConstraint!
     @IBOutlet weak var txtFieldShipmenttName: UITextField!
     @IBOutlet weak var txtFieldUserAcess: UITextField!
     @IBOutlet weak var txtfeildDesciption: UITextView!
     @IBOutlet weak var txtFieldMobility: UITextField!
-    @IBOutlet weak var btnSubmit: UIButton!
     @IBOutlet weak var swithActio: UISwitch!
+    @IBOutlet weak var btnSUp: UIButton!
     @IBOutlet weak var scrlHeight: NSLayoutConstraint!
     var selectedSubCategory: SubCategoryModel?
     var selectedCategory: CategoryModel?
     private var cancellables = Set<AnyCancellable>()
     private var activityIndicator: UIActivityIndicatorView!
     private let viewModel = DetailViewModel()
+    var selectMobility = NSMutableArray()
+    var userAceess = NSMutableArray()
 
+    var selectType = "Mobility"
     
     override func viewDidLoad() {
         super.viewDidLoad()
@@ -39,6 +47,23 @@ class EditVC: UIViewController {
     
     func setUPUI()
     {
+        
+        self.btnCancel.layer.cornerRadius = 10
+        self.btnCancel.clipsToBounds = true
+        self.btnCancel.layer.borderWidth = 1
+        self.btnCancel.layer.borderColor = UIColor.black.cgColor
+        self.btnCancel.setTitle("Cancel", for: .normal)
+        self.btnCancel.setTitleColor(.black, for: .normal)
+        
+        self.btnSUp.layer.cornerRadius = 10
+        self.btnSUp.clipsToBounds = true
+        self.btnSUp.layer.borderWidth = 1
+        self.btnSUp.layer.borderColor = UIColor.black.cgColor
+        self.btnSUp.setTitle("Update", for: .normal)
+        self.btnSUp.setTitleColor(.white, for: .normal)
+        self.btnSUp.backgroundColor = .systemBlue
+        
+        
         self.btnSubmit.layer.cornerRadius = 10
         self.btnSubmit.clipsToBounds = true
         self.txtFeildShipemntId.delegate = self
@@ -46,6 +71,35 @@ class EditVC: UIViewController {
         self.txtFieldUserAcess.delegate = self
         self.txtFieldMobility.delegate = self
         self.txtfeildDesciption.delegate = self
+        self.tblView.delegate = self
+        self.tblView.dataSource = self
+        self.tblView.separatorStyle = .none
+        self.tblView.backgroundColor = .systemGroupedBackground
+        let nib = UINib(nibName: "selectMobilityCell", bundle: nil)
+        self.tblView.register(nib, forCellReuseIdentifier: "selectMobilityCell")
+        
+        
+        var dict = ["name" : "Fixed", "status" : "false"]
+        self.selectMobility.add(dict)
+        
+        dict = ["name" : "Mobility", "status" : "false"]
+        self.selectMobility.add(dict)
+        
+        dict = ["name" : "Both", "status" : "false"]
+        self.selectMobility.add(dict)
+        
+        var dictUser = ["name" : "Shopkeeper", "status" : "false"]
+        self.userAceess.add(dictUser)
+        
+        dictUser = ["name" : "Distributer", "status" : "false"]
+        self.userAceess.add(dictUser)
+        
+        dictUser = ["name" : "Holesaler", "status" : "false"]
+        self.userAceess.add(dictUser)
+        
+        dictUser = ["name" : "Owner", "status" : "false"]
+        self.userAceess.add(dictUser)
+        
     }
     
     func addDoneButtonOnKeyboard() {
@@ -60,10 +114,12 @@ class EditVC: UIViewController {
             
             // Assign toolbar to keyboard
         self.txtfeildDesciption.inputAccessoryView = toolbar
+        self.txtFeildShipemntId.inputAccessoryView = toolbar
         }
         
         @objc func doneButtonTapped() {
             self.txtfeildDesciption.resignFirstResponder() // Dismiss keyboard
+            self.txtFeildShipemntId.resignFirstResponder()
         }
     
     private func showAlert(title: String, message: String) {
@@ -172,7 +228,19 @@ class EditVC: UIViewController {
             self.swithActio.isOn = false
         }
     }
+    
+   
+    @IBAction func btnCancel(_ sender: Any) {
+        self.outerView.isHidden = true
+    }
+    
+    
+    @IBAction func btnUpdateVI(_ sender: Any) {
+        self.outerView.isHidden = true
+    }
+    
 }
+
 
 
 extension String {
@@ -199,12 +267,119 @@ extension EditVC : UITextViewDelegate,UITextFieldDelegate {
     
     func textFieldShouldBeginEditing(_ textField: UITextField) -> Bool {
         if textField == self.txtFieldMobility {
+            self.outerView.isHidden = false
+            self.selectType = "Mobility"
+            self.lblOuterSelect.text = "Select Mobility"
+            self.tblView.reloadData()
             return false
         }
         if textField == self.txtFieldUserAcess {
+            self.outerView.isHidden = false
+            self.selectType = "Access"
+            self.lblOuterSelect.text = "Select User Access"
+            self.tblView.reloadData()
             return false
         }
         return true
+    }
+    
+}
+
+extension EditVC  : UITableViewDelegate,UITableViewDataSource {
+    
+    func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
+        
+        if self.selectType == "Mobility"
+        {
+            if let data = self.selectMobility[indexPath.row] as? NSDictionary {
+                let currentStatus = data["status"] as? String ?? "false"
+                let newStatus = (currentStatus == "true") ? "false" : "true"
+                
+                // Create a new updated dictionary
+                let updatedData: NSDictionary = [
+                    "name": data["name"] ?? "",
+                    "status": newStatus
+                ]
+                
+                // Replace in array
+                self.selectMobility[indexPath.row] = updatedData
+                
+                // Reload that row only
+                self.tblView.reloadData()
+            }
+        }
+        else{
+            if let data = self.userAceess[indexPath.row] as? NSDictionary {
+                let currentStatus = data["status"] as? String ?? "false"
+                let newStatus = (currentStatus == "true") ? "false" : "true"
+                
+                // Create a new updated dictionary
+                let updatedData: NSDictionary = [
+                    "name": data["name"] ?? "",
+                    "status": newStatus
+                ]
+                
+                // Replace in array
+                self.userAceess[indexPath.row] = updatedData
+                
+                // Reload that row only
+                self.tblView.reloadData()
+            }
+        }
+    }
+    
+    func tableView(_ tableView: UITableView, heightForRowAt indexPath: IndexPath) -> CGFloat {
+        return 44
+    }
+    
+    func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
+        if self.selectType == "Mobility"
+        {
+            return self.selectMobility.count
+        }
+        else{
+            return self.userAceess.count
+        }
+    }
+    
+    func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
+        if self.selectType == "Mobility"
+        {
+            let cell = tableView.dequeueReusableCell(withIdentifier: "selectMobilityCell") as! selectMobilityCell
+            
+            let data = self.selectMobility[indexPath.row] as? NSDictionary
+            let name = data?.object(forKey: "name")
+            cell.lblName.text = name as? String
+            
+            let status = data?.object(forKey: "status") as? String
+            if status == "true"
+            {
+                cell.btnSelect.setImage(UIImage(named: "square-check"), for: .normal)
+            }
+            else{
+                cell.btnSelect.setImage(UIImage(named: "square"), for: .normal)
+            }
+            return cell
+        }
+        else{
+            let cell = tableView.dequeueReusableCell(withIdentifier: "selectMobilityCell") as! selectMobilityCell
+            
+            let data = self.userAceess[indexPath.row] as? NSDictionary
+            let name = data?.object(forKey: "name")
+            cell.lblName.text = name as? String
+            
+            let status = data?.object(forKey: "status") as? String
+            if status == "true"
+            {
+                cell.btnSelect.setImage(UIImage(named: "square-check"), for: .normal)
+            }
+            else{
+                cell.btnSelect.setImage(UIImage(named: "square"), for: .normal)
+            }
+            return cell
+        }
+        
+        
     }
     
 }
